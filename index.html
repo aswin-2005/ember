@@ -111,7 +111,43 @@ const MOCK = true;
 const $ = s => document.querySelector(s), DAY = 864e5, rnd = Math.random;
 const store = { get(k){ try { return localStorage.getItem(k) } catch(e){ return null } }, set(k,v){ try { localStorage.setItem(k,v) } catch(e){} } };
 let cfg = {}; try { cfg = JSON.parse(store.get('ember_cfg') || '{}') } catch(e){}
-let R = [], start = Date.now(), sha = null, useMock = false, prevBal = null, windT = 0, windDir = 1;
+let R = [], sha = null, useMock = false, prevBal = null, windT = 0, windDir = 1;
+
+// ---------- helpers ----------
+const p2 = n => String(n).padStart(2, '0');
+const fmt12 = t => {
+  const d = new Date(t);
+  const y = d.getFullYear();
+  const m = p2(d.getMonth() + 1);
+  const day = p2(d.getDate());
+  let h = d.getHours();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  const mi = p2(d.getMinutes());
+  const s = p2(d.getSeconds());
+  return `${y}-${m}-${day} ${p2(h)}:${mi}:${s} ${ampm}`;
+};
+
+function parseEntry(str){
+  str = (str || '').trim();
+  if (!str || str.startsWith('#')) return NaN;
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM|am|pm)?/i);
+  if (m){
+    const [_, y, mo, d, h, mi, s, ampm] = m;
+    let hour = parseInt(h, 10);
+    const min = parseInt(mi, 10);
+    const sec = s ? parseInt(s, 10) : 0;
+    if (ampm){
+      const ap = ampm.toUpperCase();
+      if (ap === 'PM' && hour < 12) hour += 12;
+      if (ap === 'AM' && hour === 12) hour = 0;
+    }
+    return new Date(parseInt(y, 10), parseInt(mo, 10) - 1, parseInt(d, 10), hour, min, sec).getTime();
+  }
+  const raw = str.split('|')[0].trim();
+  const t = Date.parse(raw);
+  return isNaN(t) ? NaN : t;
+}
 
 // ---------- data ----------
 function mockData(){
@@ -120,27 +156,21 @@ function mockData(){
     const h = rnd() < .6 ? 21 + rnd() * 4 : rnd() * 24;
     out.push(now - d * DAY + (h - new Date().getHours()) * 36e5);
   }
-  return { start: now - 31 * DAY, R: out.filter(t => t < now - 3 * 36e5).sort((a,b) => a-b) };
+  return { R: out.filter(t => t < now - 3 * 36e5).sort((a,b) => a-b) };
 }
-const parseTs = str => {
-  str = (str || '').trim(); if (!str) return NaN;
-  let s = str.includes('T') ? str : str.replace(' ', 'T');
-  if (!s.endsWith('Z') && !/[+-]\d\d:?\d\d$/.test(s)) s += 'Z';
-  return Date.parse(s);
-};
-const fmtUtc = t => new Date(t).toISOString().slice(0, 19).replace('T', ' ');
 
 function parseLedger(txt){
-  let s = null; const r = [];
-  txt.split('\n').forEach(l => { l = l.trim(); if (!l) return;
-    if (l.startsWith('# start')) { const t = parseTs(l.slice(7)); if (!isNaN(t)) s = t; return; }
-    const t = parseTs(l.split('|')[0]); if (!isNaN(t)) r.push(t); });
+  const r = [];
+  (txt || '').split('\n').forEach(l => {
+    const t = parseEntry(l);
+    if (!isNaN(t)) r.push(t);
+  });
   r.sort((a,b) => a-b);
-  const earliest = r.length ? r[0] : Date.now();
-  const initStart = s ?? earliest;
-  return { start: Math.min(initStart, earliest), R: r };
+  return { R: r };
 }
-const ledgerText = () => '# start ' + fmtUtc(start) + '\n' + R.map(fmtUtc).join('\n') + '\n';
+
+const ledgerText = () => R.slice().sort((a,b) => a-b).map(fmt12).join('\n') + (R.length ? '\n' : '');
+
 function endpoint(){
   const u = (cfg.url || '').trim(); let m = u.match(/github\.com\/([^/]+)\/([^/]+)\/(?:blob|raw)\/([^/]+)\/(.+)$/), o, r, ref = '', p;
   if (m) [, o, r, ref, p] = m; else if ((m = u.match(/^([^/\s]+)\/([^/\s]+)\/(.+)$/))) [, o, r, p] = m; else return null;
@@ -148,16 +178,18 @@ function endpoint(){
 }
 const hdr = () => ({ Authorization: 'Bearer ' + cfg.pat, Accept: 'application/vnd.github+json' });
 function setSync(t, ok){ $('#sync').textContent = t; $('#dot').className = 'dot' + (ok === true ? ' ok' : ok === false ? ' bad' : ''); }
+
 async function pull(){
-  if (useMock){ const m = mockData(); start = m.start; R = m.R; setSync('mock data'); return; }
+  if (useMock){ const m = mockData(); R = m.R; setSync('mock data'); return; }
   const e = endpoint(); if (!e || !cfg.pat){ setSync('not configured', false); return; }
   try {
     const res = await fetch(e.api + (e.ref ? '?ref=' + e.ref : ''), { headers: hdr() });
-    if (res.status === 404){ sha = null; R = []; start = Date.now(); setSync('new ledger', true); return; }
+    if (res.status === 404){ sha = null; R = []; setSync('new ledger', true); return; }
     if (!res.ok) throw new Error(res.status);
-    const j = await res.json(); sha = j.sha; const p = parseLedger(atob(j.content.replace(/\n/g, ''))); start = p.start; R = p.R; setSync('synced', true);
+    const j = await res.json(); sha = j.sha; const p = parseLedger(atob(j.content.replace(/\n/g, ''))); R = p.R; setSync('synced', true);
   } catch(err){ setSync('offline', false); toast('Could not reach ledger'); }
 }
+
 async function push(){
   if (useMock) return;
   const e = endpoint(); if (!e || !cfg.pat){ toast('Saved locally only'); return; }
@@ -167,23 +199,33 @@ async function push(){
     if (!res.ok) throw new Error(res.status); sha = (await res.json()).content.sha; setSync('synced', true);
   } catch(err){ setSync('unsynced', false); toast('Sync failed, kept locally'); }
 }
-async function addRelapse(ts){ if (ts < start) start = ts; R.push(ts); R.sort((a,b) => a-b); windT = 1; windDir = rnd() < .5 ? -1 : 1; gust(); update(true); await push(); }
+
+async function addRelapse(ts){
+  R.push(ts);
+  R.sort((a,b) => a-b);
+  windT = 1;
+  windDir = rnd() < .5 ? -1 : 1;
+  gust();
+  update(true);
+  await push();
+}
 
 // ---------- stats ----------
 function stats(now){
-  const rs = R.filter(t => t <= now);
-  const s = Math.min(start, ...(rs.length ? [rs[0]] : [now]));
-  const ev = [s, ...rs].sort((a,b) => a-b);
+  const rs = R.filter(t => t <= now).sort((a,b) => a-b);
+  if (!rs.length) return { pts: 0, next: DAY, run: 0, best: 0 };
   let pts = 0, best = 0;
-  ev.forEach((t, i) => {
-    const nextT = i < ev.length - 1 ? ev[i+1] : now;
-    const g = Math.max(0, nextT - t);
+  for (let i = 0; i < rs.length - 1; i++){
+    const g = rs[i+1] - rs[i];
     pts += Math.floor(g / DAY);
     best = Math.max(best, g);
-  });
-  const last = ev[ev.length - 1]; return { pts: pts - rs.length, next: DAY - ((now - last) % DAY), run: Math.max(0, now - last), best };
+  }
+  const last = rs[rs.length - 1];
+  const curRun = Math.max(0, now - last);
+  pts += Math.floor(curRun / DAY);
+  best = Math.max(best, curRun);
+  return { pts: pts - rs.length, next: DAY - (curRun % DAY), run: curRun, best };
 }
-const p2 = n => String(n).padStart(2, '0');
 const fmt = ms => { const s = Math.max(0, Math.floor(ms / 1e3)); return p2(s / 3600 | 0) + ':' + p2(s % 3600 / 60 | 0) + ':' + p2(s % 60) };
 const days = ms => (ms / DAY).toFixed(1) + 'd';
 
