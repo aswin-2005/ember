@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ember</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07080c;--card:#0e1016;--line:#1e222d;--tx:#e9e4da;--dim:#8d93a3;--acc:#f59e0b;--cold:#7dd3fc;
+--f:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--f);overflow:hidden;font-variant-numeric:tabular-nums;-webkit-tap-highlight-color:transparent}
+.ui{height:100vh;height:100dvh;max-width:520px;margin:auto;display:flex;flex-direction:column;gap:8px;
+padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(72px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+header{display:flex;align-items:center;justify-content:space-between;height:26px;flex:none}
+.logo{font-weight:700;letter-spacing:4px;font-size:13px}
+.logo i{display:inline-block;width:8px;height:8px;background:var(--acc);margin-right:8px}
+.hr{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--dim)}
+.dot{width:7px;height:7px;border-radius:50%;background:#555;display:inline-block;margin-right:5px}
+.dot.ok{background:#4ade80}.dot.bad{background:#f87171}
+.ic{background:none;border:1px solid var(--line);color:var(--dim);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;padding:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.card h2{font-size:10px;color:var(--dim);font-weight:600;letter-spacing:1.4px;text-transform:uppercase;display:flex;justify-content:space-between;margin-bottom:6px}
+.card h2 b{color:var(--tx);font-weight:600;letter-spacing:.5px}
+.hero{flex:1.2 1 0;min-height:90px;position:relative;padding:0;overflow:hidden}
+#scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom;image-rendering:pixelated}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none}
+.big{font-size:32px;font-weight:700;line-height:1;color:var(--acc)}
+.big.neg{color:var(--cold)}
+.sub{font-size:10.5px;color:var(--dim);margin-top:7px}
+.prog{height:4px;background:#1a1d27;border-radius:2px;margin-top:9px;overflow:hidden}
+.prog div{height:100%;background:var(--acc);width:0;transition:width 1s linear}
+.charts{flex:1 1 0;min-height:0}
+.charts .card{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:10px 8px}
+.plot{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;width:100%;overflow:hidden}
+.bars{position:absolute;inset:14px 4px 18px 4px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid var(--line)}
+.col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.bar{width:100%;background:var(--acc);border-radius:2px 2px 0 0;min-height:0}
+.col .z{width:100%;height:2px;background:#2b4a66}
+.col span{position:absolute;font-size:9px;font-weight:600;color:var(--tx);bottom:calc(var(--h) + 2px);line-height:1}
+.col em{position:absolute;bottom:-16px;font-size:9px;color:var(--dim);font-style:normal;white-space:nowrap}
+#clock{width:auto;height:100%;max-width:100%;max-height:100%;aspect-ratio:1;display:block}
+.dock{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;padding:8px 12px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--bg) 84%,rgba(7,8,12,0));z-index:10;box-sizing:border-box}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+button.b{font:inherit;font-size:12px;font-weight:600;letter-spacing:.8px;color:var(--tx);background:var(--card);border:1px solid #2a2f3d;border-radius:12px;height:48px;cursor:pointer}
+button.b:active{transform:scale(.98)}
+button.b.p{background:var(--acc);border-color:var(--acc);color:#1a1205}
+button.b.p.armed{background:#ef4444;border-color:#ef4444;color:#fff}
+.mask{position:fixed;inset:0;background:rgba(3,4,7,.8);display:none;align-items:center;justify-content:center;padding:16px;z-index:25}
+.mask.on{display:flex}
+.modal{background:var(--card);border:1px solid #2a2f3d;border-radius:16px;padding:16px;width:100%;max-width:380px;display:grid;gap:8px}
+.modal label{font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+input{font:inherit;font-size:13px;background:var(--bg);color:var(--tx);border:1px solid #2a2f3d;border-radius:10px;padding:11px;width:100%}
+.note{font-size:10.5px;color:var(--dim);line-height:1.6}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#171a23;border:1px solid #2a2f3d;border-radius:10px;padding:8px 12px;font-size:11px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:30;white-space:nowrap}
+#toast.on{opacity:1}
+@media (max-height:640px){.big{font-size:24px}.sub{margin-top:5px}}
+</style>
+</head>
+<body>
+<div class="ui">
+  <header>
+    <div class="logo"><i></i>EMBER</div>
+    <div class="hr"><span><span class="dot" id="dot"></span><span id="sync">offline</span></span><button class="ic" id="gear" title="Config">⚙</button></div>
+  </header>
+  <div class="card hero"><canvas id="scene" width="96" height="72"></canvas></div>
+  <div class="row">
+    <div class="card"><h2>Heat</h2><div class="big" id="bal">0</div><div class="sub" id="streak"></div></div>
+    <div class="card"><h2>Next log in</h2><div class="big" id="next" style="font-size:22px;padding:5px 0 3px;color:var(--tx)">--</div><div class="prog"><div id="bar"></div></div></div>
+  </div>
+  <div class="row charts">
+    <div class="card"><div class="plot"><div class="bars" id="daily"></div></div></div>
+    <div class="card"><div class="plot"><svg id="clock" viewBox="0 0 120 120"></svg></div></div>
+  </div>
+</div>
+<div class="dock">
+  <div class="btns">
+    <button class="b p" id="gust">GUST NOW</button>
+    <button class="b" id="gustPast">GUST EARLIER</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<div class="mask" id="mPast"><div class="modal">
+  <label>When did the gust hit?</label>
+  <input type="datetime-local" id="pastAt">
+  <div class="btns"><button class="b" id="pastCancel">Cancel</button><button class="b p" id="pastSave">Add</button></div>
+</div></div>
+
+<div class="mask" id="mCfg"><div class="modal">
+  <label>Ledger file link</label>
+  <input id="cfgUrl" placeholder="https://github.com/user/repo/blob/main/ledger.txt" autocomplete="off">
+  <label>Access token (PAT)</label>
+  <input id="cfgPat" type="password" placeholder="github_pat_..." autocomplete="off">
+  <div class="note">Stored only in this browser. Use a fine-grained token limited to one private repo with Contents read/write.</div>
+  <div class="btns"><button class="b" id="cfgCancel">Close</button><button class="b p" id="cfgSave">Save</button></div>
+  <button class="b" id="cfgMock" style="height:38px;font-size:11px">Use mock data (dev)</button>
+</div></div>
+
+<script>
+// ---- DEV BACKDOOR: set MOCK=false (and delete the mock block) for production ----
+const MOCK = true;
+const $ = s => document.querySelector(s), DAY = 864e5, rnd = Math.random;
+const store = { get(k){ try { return localStorage.getItem(k) } catch(e){ return null } }, set(k,v){ try { localStorage.setItem(k,v) } catch(e){} } };
+let cfg = {}; try { cfg = JSON.parse(store.get('ember_cfg') || '{}') } catch(e){}
+let R = [], start = Date.now(), sha = null, useMock = false, prevBal = null, windT = 0, windDir = 1;
+
+// ---------- data ----------
+function mockData(){
+  const now = Date.now(), out = [];
+  for (let d = 30; d >= 1; d--) if (rnd() < .55) for (let i = 0, n = rnd() < .3 ? 2 : 1; i < n; i++){
+    const h = rnd() < .6 ? 21 + rnd() * 4 : rnd() * 24;
+    out.push(now - d * DAY + (h - new Date().getHours()) * 36e5);
+  }
+  return { start: now - 31 * DAY, R: out.filter(t => t < now - 3 * 36e5).sort((a,b) => a-b) };
+}
+function parseLedger(txt){
+  let s = null; const r = [];
+  txt.split('\n').forEach(l => { l = l.trim(); if (!l) return;
+    if (l.startsWith('# start')) { const t = Date.parse(l.slice(7).trim()); if (!isNaN(t)) s = t; return; }
+    const t = Date.parse(l.split('|')[0].trim()); if (!isNaN(t)) r.push(t); });
+  r.sort((a,b) => a-b); return { start: s ?? (r[0] ?? Date.now()), R: r };
+}
+const ledgerText = () => '# start ' + new Date(start).toISOString() + '\n' + R.map(t => new Date(t).toISOString() + ' | ' + new Date(t).toDateString()).join('\n') + '\n';
+function endpoint(){
+  const u = (cfg.url || '').trim(); let m = u.match(/github\.com\/([^/]+)\/([^/]+)\/(?:blob|raw)\/([^/]+)\/(.+)$/), o, r, ref = '', p;
+  if (m) [, o, r, ref, p] = m; else if ((m = u.match(/^([^/\s]+)\/([^/\s]+)\/(.+)$/))) [, o, r, p] = m; else return null;
+  return { api: `https://api.github.com/repos/${o}/${r}/contents/${p}`, ref };
+}
+const hdr = () => ({ Authorization: 'Bearer ' + cfg.pat, Accept: 'application/vnd.github+json' });
+function setSync(t, ok){ $('#sync').textContent = t; $('#dot').className = 'dot' + (ok === true ? ' ok' : ok === false ? ' bad' : ''); }
+async function pull(){
+  if (useMock){ const m = mockData(); start = m.start; R = m.R; setSync('mock data'); return; }
+  const e = endpoint(); if (!e || !cfg.pat){ setSync('not configured', false); return; }
+  try {
+    const res = await fetch(e.api + (e.ref ? '?ref=' + e.ref : ''), { headers: hdr() });
+    if (res.status === 404){ sha = null; R = []; start = Date.now(); setSync('new ledger', true); return; }
+    if (!res.ok) throw new Error(res.status);
+    const j = await res.json(); sha = j.sha; const p = parseLedger(atob(j.content.replace(/\n/g, ''))); start = p.start; R = p.R; setSync('synced', true);
+  } catch(err){ setSync('offline', false); toast('Could not reach ledger'); }
+}
+async function push(){
+  if (useMock) return;
+  const e = endpoint(); if (!e || !cfg.pat){ toast('Saved locally only'); return; }
+  try {
+    const body = { message: 'ember: update', content: btoa(ledgerText()) }; if (sha) body.sha = sha; if (e.ref) body.branch = e.ref;
+    const res = await fetch(e.api, { method: 'PUT', headers: { ...hdr(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(res.status); sha = (await res.json()).content.sha; setSync('synced', true);
+  } catch(err){ setSync('unsynced', false); toast('Sync failed, kept locally'); }
+}
+async function addRelapse(ts){ R.push(ts); R.sort((a,b) => a-b); windT = 1; windDir = rnd() < .5 ? -1 : 1; gust(); update(true); await push(); }
+
+// ---------- stats ----------
+function stats(now){
+  const rs = R.filter(t => t <= now), ev = [start, ...rs]; let pts = 0, best = 0;
+  ev.forEach((t, i) => { const g = (i < ev.length - 1 ? ev[i+1] : now) - t; pts += Math.floor(g / DAY); best = Math.max(best, g); });
+  const last = ev[ev.length - 1]; return { pts: pts - rs.length, next: DAY - ((now - last) % DAY), run: now - last, best };
+}
+const p2 = n => String(n).padStart(2, '0');
+const fmt = ms => { const s = Math.max(0, Math.floor(ms / 1e3)); return p2(s / 3600 | 0) + ':' + p2(s % 3600 / 60 | 0) + ':' + p2(s % 60) };
+const days = ms => (ms / DAY).toFixed(1) + 'd';
+
+// ---------- scene data ----------
+const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const P = {
+  warm: ['#4a1208','#9c2a0b','#e0600f','#ff9a1f','#ffd34d','#fff4b8'].map(hx),
+  hot:  ['#5a1409','#b3330c','#f06a10','#ffa621','#ffe066','#ffffff'].map(hx),
+  gold: ['#6a2a0a','#c8601a','#ffa830','#ffe27a','#fffbe0','#ffffff'].map(hx),
+  ash:  ['#2a303c','#444c5c','#69738a','#8f9ab0','#b4bfd0','#d6deea'].map(hx)
+};
+const S = [
+  { n:'Cold ash', bw:0,  mx:.7, dc:.12, p:P.ash,  snow:1, stars:0, logs:2, gl:0 },
+  { n:'Unlit',    bw:-1, mx:0,  dc:.2,  p:P.ash,  snow:0, stars:0, logs:3, gl:0 },
+  { n:'Spark',    bw:2,  mx:.8, dc:.13, p:P.warm, snow:0, stars:0, logs:2, gl:.35 },
+  { n:'Campfire', bw:5,  mx:1,  dc:.075,p:P.warm, snow:0, stars:0, logs:3, gl:.55 },
+  { n:'Bonfire',  bw:8,  mx:1,  dc:.055,p:P.hot,  snow:0, stars:1, logs:4, gl:.75 },
+  { n:'Blaze',    bw:10, mx:1,  dc:.042,p:P.hot,  snow:0, stars:1, logs:5, gl:.9 },
+  { n:'Beacon',   bw:7,  mx:1,  dc:.028,p:P.gold, snow:0, stars:1, logs:5, gl:1 }
+];
+const stIdx = b => b < 0 ? 0 : b === 0 ? 1 : b < 3 ? 2 : b < 7 ? 3 : b < 14 ? 4 : b < 30 ? 5 : 6;
+let cur = S[1], curIdx = 1;
+
+const cv = $('#scene'), ctx = cv.getContext('2d'), W = 96, H = 72, GROUND = 58, BASE = 54, CX = 48;
+const img = ctx.createImageData(W, H), px = img.data, heat = new Float32Array(W * H);
+const B4 = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+const lerp = (a, b, t) => a + (b - a) * t, mix = (a, b, t) => a.map((v, i) => lerp(v, b[i], t));
+function trees(list){ const t = new Array(W).fill(GROUND);
+  list.forEach(([c, h, w]) => { for (let x = c - w; x <= c + w; x++){ if (x < 0 || x >= W) continue;
+    const y = GROUND - Math.round(h * (1 - Math.abs(x - c) / w) / 3) * 3; if (y < t[x]) t[x] = y; } }); return t; }
+const far = trees([[6,26,9],[19,31,10],[32,22,8],[48,13,6],[62,24,9],[75,31,10],[89,26,9]]);
+const near = trees([[3,38,11],[16,30,8],[81,34,10],[94,40,11]]);
+const snowH = Array.from({length: W}, (_, x) => Math.round(1 + Math.sin(x / 5) + rnd()));
+const stars = Array.from({length: 34}, () => [rnd() * W | 0, rnd() * 34 | 0, rnd()]);
+let parts = [], streaks = [], flyers = [], snow = Array.from({length: 50}, () => ({x: rnd() * W, y: rnd() * H, v: .12 + rnd() * .25}));
+
+function set(x, y, c, a = 1){ x |= 0; y |= 0; if (x < 0 || y < 0 || x >= W || y >= H) return; const i = (y * W + x) * 4;
+  px[i] += (c[0] - px[i]) * a; px[i+1] += (c[1] - px[i+1]) * a; px[i+2] += (c[2] - px[i+2]) * a; px[i+3] = 255; }
+function gust(){
+  for (let i = 0; i < 10; i++) streaks.push({ x: windDir > 0 ? -rnd() * 40 : W + rnd() * 40, y: 10 + rnd() * 44, l: 8 + rnd() * 12, v: (1.8 + rnd() * 1.6) * windDir });
+  if (curIdx > 1) flyers.push({ x: CX, y: GROUND - 5, vx: windDir * (1.2 + rnd()), vy: -1.6, fall: 0 });
+  burst(14, [255, 150, 40]);
+}
+function burst(n, c){ for (let i = 0; i < n; i++) parts.push({ x: CX + (rnd() - .5) * 10, y: BASE - 4, vx: (rnd() - .5) * 1.3, vy: -(.5 + rnd() * 1.3), l: 40 + rnd() * 30, m: 70, c: c || [255, 200, 80] }); }
+function dropLog(){ flyers.push({ x: CX + (rnd() - .5) * 8, y: -4, vx: 0, vy: 1.4, fall: 1 }); }
+
+function logAt(x, y, dead){
+  const c = dead ? [[96,106,126],[66,74,92],[44,50,64]] : [[132,84,42],[96,58,28],[62,36,18]];
+  for (let i = 0; i < 18; i++){ set(x + i, y, c[0]); set(x + i, y + 1, c[1]); set(x + i, y + 2, c[2]); }
+  for (let k = 0; k < 3; k++){ set(x, y + k, dead ? [150,160,180] : [168,116,64]); set(x + 17, y + k, dead ? [150,160,180] : [168,116,64]); }
+  if (dead) for (let i = 1; i < 17; i += 1) set(x + i, y - 1, [226, 234, 246]);
+}
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let last = 0, tick = 0;
+function frame(t){
+  requestAnimationFrame(frame);
+  if (document.hidden || t - last < (reduce ? 120 : 42)) return; last = t; tick++;
+  const d = new Date(), hr = d.getHours() + d.getMinutes() / 60, day = Math.max(0, Math.sin((hr - 6) / 12 * Math.PI)), s = cur, dead = curIdx === 0;
+  const idle = dead ? Math.sin(tick / 40) * .9 : Math.sin(tick / 70) * .2, wind = windT * windDir * 2 + idle; windT = Math.max(0, windT - .01);
+  const top = mix([5,6,14], [34,28,58], day), bot = mix([16,18,34], [110,62,72], day);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
+    const k = Math.min(1, y / GROUND), th = B4[(y & 3) * 4 + (x & 3)] / 16, i = (y * W + x) * 4;
+    for (let c = 0; c < 3; c++) px[i + c] = Math.floor(lerp(top[c], bot[c], k * k) / 5 + th) * 5; px[i + 3] = 255;
+  }
+  if (s.stars || day < .3) stars.forEach(a => { if (!s.stars && a[2] < .6) return; set(a[0], a[1], [210, 216, 240], (1 - day) * (.3 + .6 * (.5 + .5 * Math.sin(tick / 10 + a[2] * 30)))); });
+  if (day < .6) { for (let y = -3; y <= 3; y++) for (let x = -3; x <= 3; x++) if (x * x + y * y <= 9) set(78 + x, 12 + y, [226, 230, 244], .9 * (1 - day)); }
+  const tc = mix([12,15,28], [22,20,38], day), tn = mix([6,8,14], [12,10,20], day);
+  for (let x = 0; x < W; x++){
+    for (let y = far[x]; y < GROUND; y++) set(x, y, tc); for (let y = near[x]; y < GROUND; y++) set(x, y, tn);
+    if (dead){ if (far[x] < GROUND) set(x, far[x], [200, 212, 230], .7); if (near[x] < GROUND) set(x, near[x], [226, 234, 246]); }
+  }
+  const gcol = dead ? [28,34,48] : [26,18,14];
+  for (let y = GROUND; y < H; y++) for (let x = 0; x < W; x++) set(x, y, gcol);
+  if (dead) for (let x = 0; x < W; x++) for (let k = 0; k < snowH[x]; k++) set(x, GROUND + k, [214, 224, 238]);
+  // dithered firelight
+  const fl = s.gl * (.85 + .15 * Math.sin(tick / 2.5) + (rnd() - .5) * .1), gr = 16 + s.bw * 2.4;
+  if (fl > 0) for (let y = Math.max(0, BASE - gr * .9 | 0); y < H; y++) for (let x = Math.max(0, CX - gr | 0); x < CX + gr; x++){
+    const dd = Math.hypot(x - CX, (y - BASE) * 1.5) / gr; if (dd >= 1) continue; const g = (1 - dd) * (1 - dd) * fl, th = (B4[(y & 3) * 4 + (x & 3)] + .5) / 16;
+    if (g > th) set(x, y, [255, 130, 30], .3); if (g > th + .35) set(x, y, [255, 190, 90], .25); }
+  // stones + logs
+  [CX - 26, CX + 22].forEach(sx => { for (let i = 0; i < 4; i++) for (let k = 0; k < 2; k++) set(sx + i, GROUND - k, k ? [92,98,112] : [128,136,150]); });
+  const slots = [[-14, 0], [-1, 0], [12, 0], [-7, -3], [6, -3]], order = [1, 0, 2, 3, 4];
+  for (let i = 0; i < s.logs; i++){ const sl = slots[order[i]]; logAt(CX + sl[0] - 8, GROUND - 3 + sl[1], dead); }
+  // fire sim
+  for (let x = 0; x < W; x++) heat[BASE * W + x] = 0;
+  if (s.bw >= 0) for (let x = -s.bw; x <= s.bw; x++){ const f = 1 - Math.abs(x) / (s.bw + 1);
+    if (s.bw === 0){ if (rnd() < .6) heat[BASE * W + CX] = s.mx; } else heat[BASE * W + CX + x] = (rnd() * .45 + .55) * s.mx * (.55 + .45 * f); }
+  const near1 = $('#next').dataset.near === '1', dc = s.dc * (near1 ? .88 : 1);
+  for (let y = 0; y < BASE; y++) for (let x = 1; x < W - 1; x++){
+    const sh = rnd() < .5 ? -1 : 1, b = (y + 1) * W, v = (heat[b + x] * 2 + heat[b + x - 1] + heat[b + x + 1] + heat[b + x + sh]) / 5 - dc * (.35 + rnd() * .9);
+    heat[y * W + x] = v > 0 ? v : 0; }
+  for (let y = 0; y < BASE; y++){ const bend = Math.round(wind * Math.pow((BASE - y) / 26, 1.4));
+    for (let x = 0; x < W; x++){ const h = heat[y * W + x]; if (h > .09) set(x + bend, y, s.p[Math.min(5, h * 6 | 0)]); } }
+  // particles: embers, smoke
+  if (!reduce && curIdx > 1 && rnd() < s.gl * .55) parts.push({ x: CX + (rnd() - .5) * s.bw * 1.5, y: BASE - 8 - rnd() * 12, vx: (rnd() - .5) * .3, vy: -(.25 + rnd() * .4), l: 40 + rnd() * 40, m: 80, c: [255, 175, 70] });
+  if (!reduce && (dead || curIdx === 2) && rnd() < .12) parts.push({ x: CX + (rnd() - .5) * 3, y: BASE - 6, vx: .05, vy: -.22, l: 100, m: 100, c: [120, 128, 142], smoke: 1 });
+  parts = parts.filter(p => { p.x += p.vx + wind * .12 + (p.smoke ? Math.sin(p.y / 5) * .08 : 0); p.y += p.vy; p.l--; set(p.x, p.y, p.c, Math.min(1, p.l / 25) * (p.smoke ? .5 : 1)); return p.l > 0 && p.y > 0; });
+  flyers = flyers.filter(f => { f.x += f.vx; f.y += f.vy; f.vy += f.fall ? 0 : .18;
+    for (let i = 0; i < 8; i++){ set(f.x + i, f.y, [132, 84, 42]); set(f.x + i, f.y + 1, [86, 52, 26]); }
+    if (f.fall && f.y >= GROUND - 6){ burst(26); return false; } return f.y < H + 4 && f.x > -12 && f.x < W + 12; });
+  if (s.snow) snow.forEach(f => { f.y += f.v; f.x += wind * .2 + Math.sin(f.y / 6) * .1; if (f.y > GROUND) { f.y = 0; f.x = rnd() * W; } if (f.x < 0) f.x = W; if (f.x > W) f.x = 0; set(f.x, f.y, [230, 238, 250], .9); });
+  streaks = streaks.filter(w => { w.x += w.v; for (let i = 0; i < w.l; i++) set(w.x - i * Math.sign(w.v), w.y + Math.sin((w.x - i) / 6) * 1.5, [200, 214, 238], .55 * (1 - i / w.l)); return w.x > -50 && w.x < W + 50; });
+  ctx.putImageData(img, 0, 0);
+}
+requestAnimationFrame(frame);
+
+// ---------- charts ----------
+function drawDaily(){
+  const n = 14, c = Array(n).fill(0), t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  R.forEach(t => { const d = Math.round((t0 - new Date(new Date(t).setHours(0, 0, 0, 0))) / DAY); if (d >= 0 && d < n) c[n - 1 - d]++; });
+  const mx = Math.max(2, ...c);
+  $('#daily').innerHTML = c.map((v, i) => { const dt = new Date(t0 - (n - 1 - i) * DAY), lab = i === n - 1 ? 'today' : (i % 3 === 1 ? dt.getDate() : ''), h = v ? Math.max(5, Math.round(v / mx * 68)) : 0;
+    return `<div class="col" style="--h:${h}%">${v ? `<span>${v}</span><div class="bar" style="height:${h}%"></div>` : '<div class="z"></div>'}<em>${lab}</em></div>`; }).join('');
+}
+function drawClock(){
+  const c = Array(24).fill(0); R.forEach(t => c[new Date(t).getHours()]++);
+  const mx = Math.max(1, ...c), pk = c.indexOf(Math.max(...c));
+  let h = '<circle cx="60" cy="60" r="23" fill="none" stroke="#1e222d"/>';
+  c.forEach((v, i) => {
+    const a = i / 24 * Math.PI * 2 - Math.PI / 2;
+    const r2 = 25 + (v ? 2 + v / mx * 12 : 1);
+    const stroke = v ? (i === pk ? '#fcd34d' : '#f59e0b') : '#2a2f3d';
+    h += `<line x1="${60 + Math.cos(a) * 25}" y1="${60 + Math.sin(a) * 25}" x2="${60 + Math.cos(a) * r2}" y2="${60 + Math.sin(a) * r2}" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round"/>`;
+  });
+  const T = (x, y, s, a = 'middle') => `<text x="${x}" y="${y}" fill="#8d93a3" font-size="7.5" font-weight="600" text-anchor="${a}" font-family="JetBrains Mono,monospace">${s}</text>`;
+  h += T(60, 9, '12 AM') + T(118, 63, '6 AM', 'end') + T(60, 117, '12 PM') + T(2, 63, '6 PM', 'start');
+  if (R.length){
+    const hr12 = pk % 12 === 0 ? 12 : pk % 12, ampm = pk < 12 ? 'AM' : 'PM';
+    h += `<text x="60" y="58" fill="#e9e4da" font-size="11" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">${hr12} ${ampm}</text>`;
+    h += `<text x="60" y="68" fill="#8d93a3" font-size="6.5" font-weight="600" text-anchor="middle" font-family="JetBrains Mono,monospace" letter-spacing="1">PEAK</text>`;
+  } else {
+    h += `<text x="60" y="63" fill="#8d93a3" font-size="11" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">--</text>`;
+  }
+  $('#clock').innerHTML = h;
+}
+
+// ---------- ui ----------
+function update(redraw){
+  const st = stats(Date.now()), b = st.pts, idx = stIdx(b); curIdx = idx; cur = S[idx];
+  $('#bal').textContent = b; $('#bal').className = 'big' + (b < 0 ? ' neg' : '');
+  $('#next').textContent = fmt(st.next); $('#next').dataset.near = st.next < 36e5 ? '1' : '0'; $('#bar').style.width = (1 - st.next / DAY) * 100 + '%';
+  $('#streak').textContent = 'run ' + days(st.run) + ' · best ' + days(st.best);
+  if (prevBal !== null && b > prevBal) dropLog(); prevBal = b;
+  if (redraw){ drawDaily(); drawClock(); }
+}
+let tt; function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2400); }
+let armT; const rs = () => { $('#gust').classList.remove('armed'); $('#gust').textContent = 'GUST NOW'; };
+$('#gust').onclick = function(){ if (!this.classList.contains('armed')){ this.classList.add('armed'); this.textContent = 'TAP TO CONFIRM'; armT = setTimeout(rs, 3000); return; } clearTimeout(armT); rs(); addRelapse(Date.now()); };
+const lt = t => new Date(t - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
+$('#gustPast').onclick = () => { $('#pastAt').max = lt(Date.now()); $('#pastAt').value = lt(Date.now()); $('#mPast').classList.add('on'); };
+$('#pastCancel').onclick = () => $('#mPast').classList.remove('on');
+$('#pastSave').onclick = () => { const t = Date.parse($('#pastAt').value); if (isNaN(t) || t > Date.now()) return toast('Pick a past time'); $('#mPast').classList.remove('on'); addRelapse(t); };
+$('#gear').onclick = () => { $('#cfgUrl').value = cfg.url || ''; $('#cfgPat').value = cfg.pat || ''; $('#mCfg').classList.add('on'); };
+$('#cfgCancel').onclick = () => $('#mCfg').classList.remove('on');
+$('#cfgSave').onclick = async () => { cfg = { url: $('#cfgUrl').value.trim(), pat: $('#cfgPat').value.trim() }; store.set('ember_cfg', JSON.stringify(cfg)); useMock = false; $('#mCfg').classList.remove('on'); await pull(); update(true); };
+if (MOCK) $('#cfgMock').onclick = async () => { useMock = true; $('#mCfg').classList.remove('on'); await pull(); update(true); }; else $('#cfgMock').remove();
+(async () => { useMock = MOCK && !(cfg.url && cfg.pat); await pull(); update(true); setInterval(() => update(false), 1000); if (!useMock && !(cfg.url && cfg.pat)) $('#mCfg').classList.add('on'); })();
+</script>
+</body>
+</html>
