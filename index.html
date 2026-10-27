@@ -122,14 +122,22 @@ function mockData(){
   }
   return { start: now - 31 * DAY, R: out.filter(t => t < now - 3 * 36e5).sort((a,b) => a-b) };
 }
+const parseTs = str => {
+  str = (str || '').trim(); if (!str) return NaN;
+  let s = str.includes('T') ? str : str.replace(' ', 'T');
+  if (!s.endsWith('Z') && !/[+-]\d\d:?\d\d$/.test(s)) s += 'Z';
+  return Date.parse(s);
+};
+const fmtUtc = t => new Date(t).toISOString().slice(0, 19).replace('T', ' ');
+
 function parseLedger(txt){
   let s = null; const r = [];
   txt.split('\n').forEach(l => { l = l.trim(); if (!l) return;
-    if (l.startsWith('# start')) { const t = Date.parse(l.slice(7).trim()); if (!isNaN(t)) s = t; return; }
-    const t = Date.parse(l.split('|')[0].trim()); if (!isNaN(t)) r.push(t); });
+    if (l.startsWith('# start')) { const t = parseTs(l.slice(7)); if (!isNaN(t)) s = t; return; }
+    const t = parseTs(l.split('|')[0]); if (!isNaN(t)) r.push(t); });
   r.sort((a,b) => a-b); return { start: s ?? (r[0] ?? Date.now()), R: r };
 }
-const ledgerText = () => '# start ' + new Date(start).toISOString() + '\n' + R.map(t => new Date(t).toISOString() + ' | ' + new Date(t).toDateString()).join('\n') + '\n';
+const ledgerText = () => '# start ' + fmtUtc(start) + '\n' + R.map(fmtUtc).join('\n') + '\n';
 function endpoint(){
   const u = (cfg.url || '').trim(); let m = u.match(/github\.com\/([^/]+)\/([^/]+)\/(?:blob|raw)\/([^/]+)\/(.+)$/), o, r, ref = '', p;
   if (m) [, o, r, ref, p] = m; else if ((m = u.match(/^([^/\s]+)\/([^/\s]+)\/(.+)$/))) [, o, r, p] = m; else return null;
