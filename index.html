@@ -135,7 +135,10 @@ function parseLedger(txt){
   txt.split('\n').forEach(l => { l = l.trim(); if (!l) return;
     if (l.startsWith('# start')) { const t = parseTs(l.slice(7)); if (!isNaN(t)) s = t; return; }
     const t = parseTs(l.split('|')[0]); if (!isNaN(t)) r.push(t); });
-  r.sort((a,b) => a-b); return { start: s ?? (r[0] ?? Date.now()), R: r };
+  r.sort((a,b) => a-b);
+  const earliest = r.length ? r[0] : Date.now();
+  const initStart = s ?? earliest;
+  return { start: Math.min(initStart, earliest), R: r };
 }
 const ledgerText = () => '# start ' + fmtUtc(start) + '\n' + R.map(fmtUtc).join('\n') + '\n';
 function endpoint(){
@@ -164,13 +167,21 @@ async function push(){
     if (!res.ok) throw new Error(res.status); sha = (await res.json()).content.sha; setSync('synced', true);
   } catch(err){ setSync('unsynced', false); toast('Sync failed, kept locally'); }
 }
-async function addRelapse(ts){ R.push(ts); R.sort((a,b) => a-b); windT = 1; windDir = rnd() < .5 ? -1 : 1; gust(); update(true); await push(); }
+async function addRelapse(ts){ if (ts < start) start = ts; R.push(ts); R.sort((a,b) => a-b); windT = 1; windDir = rnd() < .5 ? -1 : 1; gust(); update(true); await push(); }
 
 // ---------- stats ----------
 function stats(now){
-  const rs = R.filter(t => t <= now), ev = [start, ...rs]; let pts = 0, best = 0;
-  ev.forEach((t, i) => { const g = (i < ev.length - 1 ? ev[i+1] : now) - t; pts += Math.floor(g / DAY); best = Math.max(best, g); });
-  const last = ev[ev.length - 1]; return { pts: pts - rs.length, next: DAY - ((now - last) % DAY), run: now - last, best };
+  const rs = R.filter(t => t <= now);
+  const s = Math.min(start, ...(rs.length ? [rs[0]] : [now]));
+  const ev = [s, ...rs].sort((a,b) => a-b);
+  let pts = 0, best = 0;
+  ev.forEach((t, i) => {
+    const nextT = i < ev.length - 1 ? ev[i+1] : now;
+    const g = Math.max(0, nextT - t);
+    pts += Math.floor(g / DAY);
+    best = Math.max(best, g);
+  });
+  const last = ev[ev.length - 1]; return { pts: pts - rs.length, next: DAY - ((now - last) % DAY), run: Math.max(0, now - last), best };
 }
 const p2 = n => String(n).padStart(2, '0');
 const fmt = ms => { const s = Math.max(0, Math.floor(ms / 1e3)); return p2(s / 3600 | 0) + ':' + p2(s % 3600 / 60 | 0) + ':' + p2(s % 60) };
