@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background glow -->
+    <radialGradient id="emberGlow" cx="50%" cy="58%" r="48%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.28"/>
+      <stop offset="45%" stop-color="#ea580c" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#07080c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- App icon squircle background -->
+  <rect width="512" height="512" rx="112" fill="#07080c"/>
+  <rect width="508" height="508" x="2" y="2" rx="110" fill="none" stroke="#1e222d" stroke-width="4"/>
+  
+  <!-- Subtle warm halo -->
+  <circle cx="256" cy="275" r="185" fill="url(#emberGlow)"/>
+
+  <!-- Pixel art fire (24px grid cells, centered at 256, 260) -->
+  <g transform="translate(64, 52)">
+    <!-- Floating Sparks -->
+    <rect x="168" y="24" width="24" height="24" fill="#fcd34d"/>
+    <rect x="240" y="48" width="24" height="24" fill="#f59e0b"/>
+    <rect x="96" y="96" width="24" height="24" fill="#fbbf24"/>
+    <rect x="264" y="96" width="24" height="24" fill="#f59e0b"/>
+
+    <!-- Flame Layer: Deep Red/Crimson (#b91c1c) Outer Outline -->
+    <rect x="168" y="72" width="48" height="24" fill="#b91c1c"/>
+    <rect x="144" y="96" width="24" height="24" fill="#b91c1c"/>
+    <rect x="216" y="96" width="24" height="24" fill="#b91c1c"/>
+    
+    <rect x="120" y="120" width="24" height="24" fill="#b91c1c"/>
+    <rect x="240" y="120" width="24" height="24" fill="#b91c1c"/>
+    
+    <rect x="96" y="144" width="24" height="48" fill="#b91c1c"/>
+    <rect x="264" y="144" width="24" height="48" fill="#b91c1c"/>
+    
+    <rect x="72" y="192" width="24" height="72" fill="#b91c1c"/>
+    <rect x="288" y="192" width="24" height="72" fill="#b91c1c"/>
+
+    <rect x="96" y="264" width="24" height="24" fill="#b91c1c"/>
+    <rect x="264" y="264" width="24" height="24" fill="#b91c1c"/>
+
+    <!-- Flame Layer: Vibrant Orange (#ea580c) -->
+    <rect x="168" y="96" width="48" height="24" fill="#ea580c"/>
+    <rect x="144" y="120" width="24" height="24" fill="#ea580c"/>
+    <rect x="216" y="120" width="24" height="24" fill="#ea580c"/>
+    
+    <rect x="120" y="144" width="24" height="48" fill="#ea580c"/>
+    <rect x="240" y="144" width="24" height="48" fill="#ea580c"/>
+    
+    <rect x="96" y="192" width="24" height="72" fill="#ea580c"/>
+    <rect x="264" y="192" width="24" height="72" fill="#ea580c"/>
+    
+    <rect x="120" y="264" width="144" height="24" fill="#ea580c"/>
+
+    <!-- Flame Layer: Warm Amber (#f59e0b) -->
+    <rect x="168" y="120" width="48" height="24" fill="#f59e0b"/>
+    <rect x="144" y="144" width="96" height="24" fill="#f59e0b"/>
+    
+    <rect x="120" y="168" width="24" height="72" fill="#f59e0b"/>
+    <rect x="240" y="168" width="24" height="72" fill="#f59e0b"/>
+    
+    <rect x="144" y="240" width="96" height="24" fill="#f59e0b"/>
+
+    <!-- Flame Layer: Bright Golden Yellow (#fbbf24) -->
+    <rect x="168" y="144" width="48" height="24" fill="#fbbf24"/>
+    <rect x="144" y="168" width="96" height="24" fill="#fbbf24"/>
+    
+    <rect x="144" y="192" width="24" height="48" fill="#fbbf24"/>
+    <rect x="216" y="192" width="24" height="48" fill="#fbbf24"/>
+
+    <!-- Core: White-Hot Center (#fffbe0) -->
+    <rect x="168" y="168" width="48" height="72" fill="#fffbe0"/>
+    <rect x="192" y="144" width="24" height="24" fill="#fffbe0"/>
+
+    <!-- Campfire Charred Logs & Embers Base -->
+    <!-- Hot Glowing Embers beneath flame -->
+    <rect x="144" y="288" width="96" height="24" fill="#dc2626"/>
+    <rect x="168" y="288" width="48" height="24" fill="#ea580c"/>
+
+    <!-- Top Crossed Log -->
+    <rect x="72" y="288" width="72" height="24" fill="#2d3342"/>
+    <rect x="240" y="288" width="72" height="24" fill="#2d3342"/>
+    <rect x="48" y="312" width="288" height="24" fill="#1e2330"/>
+    <rect x="72" y="312" width="48" height="24" fill="#3b4356"/>
+    <rect x="264" y="312" width="48" height="24" fill="#3b4356"/>
+    
+    <!-- Hot embers in log cracks -->
+    <rect x="144" y="312" width="24" height="24" fill="#f59e0b"/>
+    <rect x="192" y="312" width="48" height="24" fill="#ea580c"/>
+
+    <!-- Base Hearth Stones -->
+    <rect x="24" y="336" width="72" height="24" fill="#141721"/>
+    <rect x="120" y="336" width="144" height="24" fill="#141721"/>
+    <rect x="288" y="336" width="72" height="24" fill="#141721"/>
+  </g>
+</svg>

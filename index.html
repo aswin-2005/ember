@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ember</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#07080c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ember">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07080c;--card:#0e1016;--line:#1e222d;--tx:#e9e4da;--dim:#8d93a3;--acc:#f59e0b;--cold:#7dd3fc;
@@ -314,6 +322,9 @@ $('#cfgCancel').onclick = () => $('#mCfg').classList.remove('on');
 $('#cfgSave').onclick = async () => { cfg = { url: $('#cfgUrl').value.trim(), pat: $('#cfgPat').value.trim() }; store.set('ember_cfg', JSON.stringify(cfg)); useMock = false; $('#mCfg').classList.remove('on'); await pull(); update(true); };
 if (MOCK) $('#cfgMock').onclick = async () => { useMock = true; $('#mCfg').classList.remove('on'); await pull(); update(true); }; else $('#cfgMock').remove();
 (async () => { useMock = MOCK && !(cfg.url && cfg.pat); await pull(); update(true); setInterval(() => update(false), 1000); if (!useMock && !(cfg.url && cfg.pat)) $('#mCfg').classList.add('on'); })();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
 </script>
 </body>
 </html>
